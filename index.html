@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Christmas List 🎁</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f2ff;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 20px; }
+    #authSection { margin-bottom: 15px; }
+    #status { font-size: 0.9rem; color: #444; margin-bottom: 8px; }
+    #error { color: #b30000; font-size: 0.9rem; margin-bottom: 10px; }
+    .item {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .item a { color: #0066cc; text-decoration: none; }
+    .item a:hover { text-decoration: underline; }
+    button {
+      padding: 7px 11px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    #loginBtn { background: #4285f4; color: #fff; }
+    #logoutBtn { background: #777; color: #fff; }
+    .buy-btn { background: #1a7f37; color: #fff; margin-top: 8px; }
+    .buy-btn.undo { background: #b30000; }
+  </style>
+</head>
+<body>
+  <h1>🎄 My Christmas List 🎁</h1>
+
+  <div id="authSection">
+    <button id="loginBtn">Sign in with Google</button>
+    <button id="logoutBtn" style="display:none;">Sign out</button>
+  </div>
+
+  <div id="status"></div>
+  <div id="error"></div>
+  <div id="list"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { 
+      getAuth, GoogleAuthProvider, signInWithPopup,
+      onAuthStateChanged, signOut 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, collection, onSnapshot, doc, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAd9K1RssrRrrwO31XyWon9eXCRIjN8dYo",
+      authDomain: "marcs-christmas-list.firebaseapp.com",
+      projectId: "marcs-christmas-list",
+      storageBucket: "marcs-christmas-list.firebasestorage.app",
+      messagingSenderId: "503235070048",
+      appId: "1:503235070048:web:8932d24d59dd7209d61b05"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const statusTxt = document.getElementById("status");
+    const errorDiv = document.getElementById("error");
+    const listDiv = document.getElementById("list");
+
+    let currentUser = null;
+    let lastSnapshot = null;
+
+    loginBtn.onclick = async () => {
+      try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        console.error("Login failed:", err);
+        alert("Login failed: " + err.message);
+      }
+    };
+
+    logoutBtn.onclick = () => signOut(auth);
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+        statusTxt.textContent = "Signed in as: " + (user.displayName || user.email);
+      } else {
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
+        statusTxt.textContent = "";
+      }
+      renderGifts(lastSnapshot);
+    });
+
+    function renderGifts(snapshot) {
+      if (!snapshot) return;
+      listDiv.innerHTML = "";
+      if (snapshot.empty) {
+        listDiv.textContent = "No gifts found yet. Add items in Firestore collection 'gifts'.";
+        return;
+      }
+
+      snapshot.forEach((docSnap) => {
+        const item = docSnap.data();
+        const id = docSnap.id;
+
+        const div = document.createElement("div");
+        div.className = "item";
+
+        div.innerHTML = `
+          <strong>${item.name || "(no name)"}</strong><br>
+          ${item.url ? `<a href="${item.url}" target="_blank">View gift</a><br><br>` : "<br>"}
+          Purchased: ${item.purchased ? "✅" : "❌"}<br>
+          ${item.boughtBy ? "Bought by: " + item.boughtBy : ""}<br>
+        `;
+
+        if (currentUser) {
+          const btn = document.createElement("button");
+          btn.className = "buy-btn" + (item.purchased ? " undo" : "");
+          btn.textContent = item.purchased ? "Undo purchase" : "Mark as bought";
+          btn.onclick = async () => {
+            try {
+              const newPurchased = !item.purchased;
+              await updateDoc(doc(db, "gifts", id), {
+                purchased: newPurchased,
+                boughtBy: newPurchased ? (currentUser.displayName || currentUser.email) : ""
+              });
+            } catch (err) {
+              console.error("Update failed:", err);
+              alert("Update failed: " + err.message);
+            }
+          };
+          div.appendChild(document.createElement("br"));
+          div.appendChild(btn);
+        }
+
+        listDiv.appendChild(div);
+      });
+    }
+
+    onSnapshot(
+      collection(db, "gifts"),
+      (snapshot) => {
+        lastSnapshot = snapshot;
+        errorDiv.textContent = "";
+        renderGifts(snapshot);
+      },
+      (err) => {
+        console.error("Snapshot error:", err);
+        errorDiv.textContent = "Error loading gifts: " + err.message;
+      }
+    );
+  </script>
+</body>
+</html>
