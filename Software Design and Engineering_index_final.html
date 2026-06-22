@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Christmas List 🎁</title>
+  <!-- Makes the page responsive on phones, tablets, and desktops. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    /* Applies predictable sizing to all page elements. */
+    * { box-sizing: border-box; }
+
+    /* General page styling for the Christmas List application. */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f2ff;
+      margin: 0;
+      padding: 20px;
+      color: #222;
+    }
+
+    /* Centers the application content and limits width for readability. */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Shared card styling for the header, controls, gift cards, and empty messages. */
+    header, .controls, .item, .empty-message {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    header {
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #555;
+    }
+
+    /* Layout for Google sign-in and sign-out buttons. */
+    #authSection {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    #status {
+      font-size: 0.9rem;
+      color: #444;
+      margin-top: 10px;
+    }
+
+    #error {
+      color: #b30000;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+
+    /* Search, filter, and sort controls used for the algorithm enhancement. */
+    .controls {
+      padding: 15px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: 1fr 180px 180px;
+      gap: 10px;
+    }
+
+    input, select {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    #loginBtn { background: #4285f4; color: #fff; }
+    #logoutBtn { background: #777; color: #fff; }
+
+    #summary {
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+      color: #444;
+    }
+
+    .item {
+      padding: 16px;
+      margin-bottom: 12px;
+      border-left: 6px solid #7b2cbf;
+    }
+
+    .item h2 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+    }
+
+    .item-details {
+      color: #444;
+      line-height: 1.6;
+    }
+
+    .item a {
+      color: #0066cc;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .item a:hover { text-decoration: underline; }
+
+    /* Badges visually identify purchase status, category, and priority. */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      background: #eee;
+      margin-right: 5px;
+    }
+
+    .badge.purchased {
+      background: #d8f3dc;
+      color: #1b4332;
+    }
+
+    .badge.not-purchased {
+      background: #ffe5ec;
+      color: #7a0026;
+    }
+
+    .buy-btn {
+      background: #1a7f37;
+      color: #fff;
+      margin-top: 10px;
+    }
+
+    .buy-btn.undo { background: #b30000; }
+
+    .empty-message {
+      padding: 20px;
+      text-align: center;
+      color: #555;
+    }
+
+    /* Responsive design enhancement for smaller screens. */
+    @media (max-width: 700px) {
+      .controls { grid-template-columns: 1fr; }
+      h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Main application container. -->
+  <div class="container">
+    <header>
+      <h1>🎄 My Christmas List 🎁</h1>
+      <p class="subtitle">Search, filter, and manage Christmas gifts in real time.</p>
+
+      <!-- Authentication controls for Google sign-in and sign-out. -->
+      <div id="authSection">
+        <button id="loginBtn">Sign in with Google</button>
+        <button id="logoutBtn" style="display:none;">Sign out</button>
+      </div>
+
+      <div id="status"></div>
+      <div id="error"></div>
+    </header>
+
+    <!-- Controls for searching, filtering, and sorting gift data. -->
+    <section class="controls">
+      <input id="searchInput" type="text" placeholder="Search gifts by name..." />
+
+      <select id="filterSelect">
+        <option value="all">Show all gifts</option>
+        <option value="purchased">Purchased only</option>
+        <option value="notPurchased">Not purchased only</option>
+      </select>
+
+      <select id="sortSelect">
+        <option value="name">Sort by name</option>
+        <option value="status">Sort by purchase status</option>
+        <option value="category">Sort by category</option>
+        <option value="priority">Sort by priority</option>
+      </select>
+    </section>
+
+    <!-- Summary and list containers are populated dynamically with JavaScript. -->
+    <div id="summary"></div>
+    <div id="list"></div>
+  </div>
+
+  <script type="module">
+    // Import Firebase application, authentication, and Firestore database tools.
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      onSnapshot,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // Firebase configuration connects the app to the Firebase project.
+    const firebaseConfig = {
+      apiKey: "AIzaSyAd9K1RssrRrrwO31XyWon9eXCRIjN8dYo",
+      authDomain: "marcs-christmas-list.firebaseapp.com",
+      projectId: "marcs-christmas-list",
+      storageBucket: "marcs-christmas-list.firebasestorage.app",
+      messagingSenderId: "503235070048",
+      appId: "1:503235070048:web:8932d24d59dd7209d61b05"
+    };
+
+    // Initialize Firebase, authentication, and Firestore database services.
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Store references to HTML elements that will be updated by JavaScript.
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const statusTxt = document.getElementById("status");
+    const errorDiv = document.getElementById("error");
+    const listDiv = document.getElementById("list");
+    const searchInput = document.getElementById("searchInput");
+    const filterSelect = document.getElementById("filterSelect");
+    const sortSelect = document.getElementById("sortSelect");
+    const summaryDiv = document.getElementById("summary");
+
+    // currentUser tracks the signed-in user. giftList stores Firestore gift records.
+    let currentUser = null;
+    let giftList = [];
+
+    // Handle Google sign-in using Firebase Authentication.
+    loginBtn.onclick = async () => {
+      try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        console.error("Login failed:", err);
+        errorDiv.textContent = "Login failed: " + err.message;
+      }
+    };
+
+    // Handle user sign-out.
+    logoutBtn.onclick = async () => {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error("Logout failed:", err);
+        errorDiv.textContent = "Logout failed: " + err.message;
+      }
+    };
+
+    // Listen for authentication state changes and update the interface.
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+
+      if (user) {
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+        statusTxt.textContent = "Signed in as: " + (user.displayName || user.email);
+      } else {
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
+        statusTxt.textContent = "Viewing as guest. Sign in to mark gifts as purchased.";
+      }
+
+      renderGifts();
+    });
+
+    // Re-render gifts whenever the user searches, filters, or changes sorting.
+    searchInput.addEventListener("input", renderGifts);
+    filterSelect.addEventListener("change", renderGifts);
+    sortSelect.addEventListener("change", renderGifts);
+
+    // Apply search, filtering, and sorting algorithms to the gift list.
+    function getFilteredAndSortedGifts() {
+      const searchText = searchInput.value.toLowerCase().trim();
+      const filterValue = filterSelect.value;
+      const sortValue = sortSelect.value;
+
+      // Filter gifts by search text and purchase status.
+      let filteredGifts = giftList.filter((gift) => {
+        const nameMatch = (gift.name || "").toLowerCase().includes(searchText);
+
+        if (filterValue === "purchased") {
+          return nameMatch && gift.purchased === true;
+        }
+
+        if (filterValue === "notPurchased") {
+          return nameMatch && gift.purchased !== true;
+        }
+
+        return nameMatch;
+      });
+
+      // Sort filtered gifts based on the selected sort option.
+      filteredGifts.sort((a, b) => {
+        if (sortValue === "status") {
+          return Number(a.purchased) - Number(b.purchased);
+        }
+
+        if (sortValue === "category") {
+          return (a.category || "Uncategorized").localeCompare(b.category || "Uncategorized");
+        }
+
+        if (sortValue === "priority") {
+          const priorityOrder = { high: 1, medium: 2, low: 3 };
+          return (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99);
+        }
+
+        return (a.name || "").localeCompare(b.name || "");
+      });
+
+      return filteredGifts;
+    }
+
+    // Render gift cards on the page using the filtered and sorted gift list.
+    // Convert Firestore timestamp values or string dates into readable text.
+    function formatDateAdded(dateValue) {
+      if (!dateValue) {
+        return "";
+      }
+
+      if (typeof dateValue.toDate === "function") {
+        return dateValue.toDate().toLocaleString();
+      }
+
+      return String(dateValue);
+    }
+
+    function renderGifts() {
+      listDiv.innerHTML = "";
+      errorDiv.textContent = "";
+
+      const visibleGifts = getFilteredAndSortedGifts();
+      summaryDiv.textContent = `Showing ${visibleGifts.length} of ${giftList.length} gift(s).`;
+
+      if (visibleGifts.length === 0) {
+        listDiv.innerHTML = `<div class="empty-message">No gifts match your search or filter.</div>`;
+        return;
+      }
+
+      // Create a visible card for each gift object.
+      visibleGifts.forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "item";
+
+        // Badge changes based on whether the gift has been purchased.
+        const purchasedBadge = item.purchased
+          ? `<span class="badge purchased">Purchased ✅</span>`
+          : `<span class="badge not-purchased">Not Purchased ❌</span>`;
+
+        div.innerHTML = `
+          <h2>${item.name || "(no name)"}</h2>
+          <div class="item-details">
+            ${purchasedBadge}
+            <span class="badge">Category: ${item.category || "Uncategorized"}</span>
+            <span class="badge">Priority: ${item.priority || "Normal"}</span><br>
+            ${item.dateAdded ? "Added: " + formatDateAdded(item.dateAdded) + "<br>" : ""}
+            ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer">View gift</a><br>` : ""}
+            ${item.boughtBy ? "Bought by: " + item.boughtBy + "<br>" : ""}
+          </div>
+        `;
+
+        // Only authenticated users can mark gifts as bought or undo purchases.
+        if (currentUser) {
+          const btn = document.createElement("button");
+          btn.className = "buy-btn" + (item.purchased ? " undo" : "");
+          btn.textContent = item.purchased ? "Undo purchase" : "Mark as bought";
+
+          // Update the selected Firestore document when purchase status changes.
+          btn.onclick = async () => {
+            try {
+              const newPurchased = !item.purchased;
+
+              await updateDoc(doc(db, "gifts", item.id), {
+                purchased: newPurchased,
+                boughtBy: newPurchased ? (currentUser.displayName || currentUser.email) : "",
+                lastUpdated: new Date().toISOString()
+              });
+            } catch (err) {
+              console.error("Update failed:", err);
+              errorDiv.textContent = "Update failed: " + err.message;
+            }
+          };
+
+          div.appendChild(btn);
+        }
+
+        listDiv.appendChild(div);
+      });
+    }
+
+    // Listen for real-time updates from the Firestore gifts collection.
+    onSnapshot(
+      collection(db, "gifts"),
+      (snapshot) => {
+        // Convert Firestore documents into JavaScript objects and include document IDs.
+        giftList = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
+
+        renderGifts();
+      },
+      (err) => {
+        console.error("Snapshot error:", err);
+        errorDiv.textContent = "Error loading gifts: " + err.message;
+      }
+    );
+  </script>
+</body>
+</html>
