@@ -32,3 +32,6 @@ Enhance security and validation protocols
 
 ## Live Website
 https://marcs-christmas-list.netlify.app
+
+#### Code Review Video
+https://www.youtube.com/watch?v=f7P4umFuNaQ
