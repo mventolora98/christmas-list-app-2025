@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Legacy 2025 behavior retained temporarily. Existing records may reveal boughtBy.
+    match /gifts/{giftId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    // New public catalog contains no purchaser identifiers.
+    match /wishlist2026/{giftId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Private claim documents are accessible only through the trusted Cloud Function.
+    match /wishlistClaims2026/{claimId} {
+      allow read, write: if false;
+    }
+  }
+}
