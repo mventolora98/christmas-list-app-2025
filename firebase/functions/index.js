@@ -5,7 +5,7 @@ const db=admin.firestore();
 exports.setGiftClaim=onCall({region:"us-central1"},async(request)=>{
  if(!request.auth)throw new HttpsError("unauthenticated","Google sign-in required.");
  const {giftId,action}=request.data||{};
- if(typeof giftId!=="string"||!/^gift-2026-\\d{2}$/.test(giftId)||!["claim","undo"].includes(action))throw new HttpsError("invalid-argument","Invalid request.");
+ if(typeof giftId!=="string"||!/^gift-2026-\d{2}$/.test(giftId)||!["claim","undo"].includes(action))throw new HttpsError("invalid-argument","Invalid request.");
  const uid=request.auth.uid;
  const giftRef=db.doc("wishlist2026/"+giftId);
  const claimRef=db.doc("wishlistClaims2026/"+giftId+"_"+uid);
