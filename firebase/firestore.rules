@@ -1,19 +1,55 @@
 rules_version = '2';
 service cloud.firestore {
-  match /databases/{database}/documents {
-    // Legacy 2025 behavior retained temporarily. Existing records may reveal boughtBy.
-    match /gifts/{giftId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    // New public catalog contains no purchaser identifiers.
-    match /wishlist2026/{giftId} {
-      allow read: if true;
-      allow write: if false;
-    }
-    // Private claim documents are accessible only through the trusted Cloud Function.
-    match /wishlistClaims2026/{claimId} {
-      allow read, write: if false;
-    }
+ match /databases/{database}/documents {
+  function signedIn() { return request.auth != null; }
+  function giftPath(id) { return /databases/$(database)/documents/wishlist2026/$(id); }
+  function claimPath(id) { return /databases/$(database)/documents/wishlist2026/$(id)/claims/$(request.auth.uid); }
+  function validCatalog() {
+   return request.resource.data.keys().hasOnly(['name','category','url','type','purchasedCount','occasions','priority'])
+    && request.resource.data.purchasedCount is int
+    && request.resource.data.purchasedCount >= 0
+    && request.resource.data.type in ['regular','giftCard'];
   }
+  // Existing collection preserved until legacy migration is reviewed.
+  match /gifts/{giftId} {
+   allow read: if true;
+   allow write: if signedIn();
+  }
+  match /wishlist2026/{giftId} {
+   allow read: if true;
+   // Catalog creation is admin-only through Firebase Console/Admin SDK.
+   allow create, delete: if false;
+   allow update: if signedIn() && validCatalog()
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['purchasedCount'])
+    && resource.data.purchasedCount is int && resource.data.purchasedCount >= 0
+    && resource.data.type in ['regular','giftCard']
+    && (
+     (request.resource.data.purchasedCount == resource.data.purchasedCount + 1
+      && (resource.data.type == 'giftCard' || resource.data.purchasedCount == 0)
+      && getAfter(claimPath(giftId)).data.active == true
+      && (!exists(claimPath(giftId)) || get(claimPath(giftId)).data.active == false))
+     ||
+     (request.resource.data.purchasedCount == resource.data.purchasedCount - 1
+      && resource.data.purchasedCount > 0
+      && exists(claimPath(giftId))
+      && get(claimPath(giftId)).data.active == true
+      && getAfter(claimPath(giftId)).data.active == false)
+    );
+   match /claims/{uid} {
+    allow get: if signedIn() && request.auth.uid == uid;
+    allow list: if false;
+    allow create: if signedIn() && request.auth.uid == uid
+     && request.resource.data.keys().hasOnly(['active'])
+     && request.resource.data.active == true
+     && getAfter(giftPath(giftId)).data.purchasedCount == get(giftPath(giftId)).data.purchasedCount + 1;
+    allow update: if signedIn() && request.auth.uid == uid
+     && request.resource.data.keys().hasOnly(['active'])
+     && resource.data.keys().hasOnly(['active'])
+     && request.resource.data.active != resource.data.active
+     && getAfter(giftPath(giftId)).data.purchasedCount ==
+       get(giftPath(giftId)).data.purchasedCount + (request.resource.data.active == true ? 1 : -1);
+    allow delete: if false;
+   }
+  }
+ }
 }
