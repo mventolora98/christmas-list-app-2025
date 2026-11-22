@@ -1,13 +1,206 @@
 [
   {
     "id": "gift-2026-01",
-    "name": "32 Degrees clothing item (existing; placeholder only)",
+    "name": "32 Degrees Cool Classic Crew T-Shirt 4-Pack",
     "category": "Clothing",
     "type": "regular",
     "occasions": [
       "christmas",
       "birthday"
     ],
-    "priority": "normal"
+    "priority": "normal",
+    "url": "https://www.32degrees.com/products/mens-4-pack-cool-classic-crew-t-shirt?variant=40487547175001"
+  },
+  {
+    "id": "gift-2026-02",
+    "name": "32 Degrees Lightweight Baselayer Mock Top",
+    "category": "Clothing",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://www.32degrees.com/products/mens-lightweight-baselayer-mock-top"
+  },
+  {
+    "id": "gift-2026-03",
+    "name": "32 Degrees Air Luxe Polo — Variant 1",
+    "category": "Clothing",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://www.32degrees.com/collections/mens/products/mens-air-luxe-polo?variant=43204459167833"
+  },
+  {
+    "id": "gift-2026-04",
+    "name": "32 Degrees Air Luxe Polo — Variant 2",
+    "category": "Clothing",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://www.32degrees.com/collections/mens/products/mens-air-luxe-polo?variant=44465249910873"
+  },
+  {
+    "id": "gift-2026-05",
+    "name": "Ralph Lauren Quarter Socks 6-Pack",
+    "category": "Clothing",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://www.ralphlauren.com/men-accessories-socks/cotton-blend-quarter-sock-6-pack/0076662436.html"
+  },
+  {
+    "id": "gift-2026-06",
+    "name": "Nike Dunk High White/Black — Size 10",
+    "category": "Footwear",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://www.flightclub.com/dunk-high-white-black-dd1399-105?size=10"
+  },
+  {
+    "id": "gift-2026-07",
+    "name": "Mercedes-Benz Everyday Companion Umbrella",
+    "category": "Car accessories",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://lifestylecollection.mbusa.com/1492600-00-everyday-companion-umbrella"
+  },
+  {
+    "id": "gift-2026-08",
+    "name": "Mercedes-Benz GLC X253 Sunshade",
+    "category": "Car accessories",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://www.mbdirectparts.com/oem-parts/mercedes-benz-sunshade-glc-suv-x253-alus6670350"
+  },
+  {
+    "id": "gift-2026-09",
+    "name": "Dash Designs Plush Velour Dash Cover",
+    "category": "Car accessories",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://dashdesigns.com/products/custom-dash-covers-plush-velour"
+  },
+  {
+    "id": "gift-2026-10",
+    "name": "Amazon Gift 1 — Product to confirm",
+    "category": "Other",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://a.co/d/07OwITif"
+  },
+  {
+    "id": "gift-2026-11",
+    "name": "Amazon Gift 2 — Product to confirm",
+    "category": "Other",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://a.co/d/0d29FOyb"
+  },
+  {
+    "id": "gift-2026-12",
+    "name": "Amazon Gift 3 — Product to confirm",
+    "category": "Other",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://a.co/d/0fGIubI8"
+  },
+  {
+    "id": "gift-2026-13",
+    "name": "Amazon Gift 4 — Product to confirm",
+    "category": "Other",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://a.co/d/092OQAHa"
+  },
+  {
+    "id": "gift-2026-14",
+    "name": "Furreal Maison Chocoleash",
+    "category": "Pet accessories",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://furrealmaison.com/products/chocoleash-flagship"
+  },
+  {
+    "id": "gift-2026-15",
+    "name": "UGG Tasman II Black — Size 10",
+    "category": "Footwear",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://www.ugg.com/men-slippers/tasman-ii/1174671.html?dwvar_1174671_color=BLK&dwvar_1174671_size=10"
+  },
+  {
+    "id": "gift-2026-16",
+    "name": "TORRAS Ostand Q3 Rugged iPhone Case",
+    "category": "Phone accessories",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://torraslife.com/products/ostand-q3-rugged-for-iphone-duo-cases"
+  },
+  {
+    "id": "gift-2026-17",
+    "name": "UGG Scuff Black — Size 10",
+    "category": "Footwear",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal",
+    "url": "https://www.ugg.com/men-slippers/scuff/1101111.html?dwvar_1101111_color=BLK&dwvar_1101111_size=10"
   }
 ]
