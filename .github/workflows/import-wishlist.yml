@@ -1,0 +1,51 @@
+name: Import wishlist to Firestore
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Preview or apply import"
+        required: true
+        type: choice
+        options:
+          - preview
+          - apply
+        default: preview
+      confirmation:
+        description: "For apply, enter IMPORT-16 (otherwise leave blank)"
+        required: false
+        type: string
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Firebase Admin SDK
+        run: npm install --no-save --no-package-lock firebase-admin
+      - name: Validate selected branch and confirmation
+        env:
+          MODE: ${{ inputs.mode }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          test "$GITHUB_REF_NAME" = "feature/firestore-wishlist-import" || { echo "Run only from feature/firestore-wishlist-import"; exit 1; }
+          if [ "$MODE" = "apply" ]; then
+            test "$CONFIRMATION" = "IMPORT-16" || { echo "Confirmation must be IMPORT-16"; exit 1; }
+          fi
+      - name: Authenticate to Google Cloud (apply only)
+        if: inputs.mode == 'apply'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: marcs-christmas-list
+      - name: Preview import
+        if: inputs.mode == 'preview'
+        run: node scripts/import-wishlist.mjs
+      - name: Apply import
+        if: inputs.mode == 'apply'
+        run: node scripts/import-wishlist.mjs --apply
