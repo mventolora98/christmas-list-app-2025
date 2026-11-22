@@ -1,0 +1,13 @@
+[
+  {
+    "id": "gift-2026-01",
+    "name": "32 Degrees clothing item (existing; placeholder only)",
+    "category": "Clothing",
+    "type": "regular",
+    "occasions": [
+      "christmas",
+      "birthday"
+    ],
+    "priority": "normal"
+  }
+]
